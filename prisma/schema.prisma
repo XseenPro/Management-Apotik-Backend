@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String @id @default(cuid())
+  username    String @unique
+  password    String
+  email       String @unique
+  purchases   Purchase[]
+  sales       Sale[]
+  resetPasswordToken  String?
+  resetPasswordExpires DateTime?
+  createdAt   DateTime @default(now())
+  updateAt    DateTime @updatedAt
+}
+
+model Drug {
+  id                    String @id @default(cuid())
+  name                  String @unique
+  description           String?
+  category              String
+  categories            Category @relation(fields: [category], references: [name])
+  purchasePriceBeforeTax Float
+  purchasePriceAfterTax Float
+  tax                   Float  @default(0)
+  sellingPrice          Float?
+  quantity              Int
+  unitName              String
+  margin                Float
+  batchNo               String
+  units                 Unit @relation(fields: [unitName], references: [name])
+  expiredDate           DateTime?
+  supplier              Supplier @relation(fields: [supplierName], references: [name])
+  supplierName          String
+  createdAt             DateTime @default(now())
+  updateAt              DateTime @updatedAt
+}
+
+model Category {
+  id        String @id @default(cuid())
+  name      String @unique
+  drugs     Drug[]
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+}
+
+model Unit {
+  id        String @id @default(cuid())
+  name      String @unique
+  drugs     Drug[]
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+}
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  address     String
+  phone       String
+  drugs       Drug[]
+  purchases   Purchase[]
+  createdAt   DateTime @default(now())
+  updateAt    DateTime @updatedAt
+}
+
+model Purchase {
+  id          String            @id @default(cuid())
+  date        DateTime
+  status      String
+  invoice     String @unique
+  totalPrice  Float
+  supplierName String
+  username      String
+  purchaseItems Json
+  supplier    Supplier           @relation(fields: [supplierName], references: [name])
+  user        User               @relation(fields: [username], references: [username])
+  createdAt   DateTime @default(now())
+  updateAt    DateTime @updatedAt
+}
+
+model Sale {
+  id          String     @id @default(cuid())
+  date        DateTime
+  invoice     String @unique
+  totalPrice  Float
+  username    String
+  user        User       @relation(fields: [username], references: [username])
+  saleItems   Json    
+  createdAt   DateTime   @default(now())
+  updateAt    DateTime   @updatedAt
+}
+
+model Store {
+  id        Int    @id @default(1)
+  storeName String
+  logo      Bytes?
+  address   String
+  phone     String
+}
+
+model Report {
+  id            Int  @id @default(1)
+  startDate     DateTime
+  endDate       DateTime
+  operationCost Int
+  taxPercentage Float
+  taxes         Float
+  totalRevenue  Float
+  COGS          Int
+  totalGrossProfit  Int
+  netIncome     Int
+}
